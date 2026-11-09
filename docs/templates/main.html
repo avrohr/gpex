@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block announce %}
+  {% if config.extra.docs_version == "dev" %}
+    Development documentation for unreleased <code>main</code>.
+  {% endif %}
+{% endblock %}
+
+{% block outdated %}
+  {% if config.extra.docs_version != "dev" %}
+    You are viewing documentation for an older release.
+    <a href="{{ config.site_url.rstrip('/').rsplit('/', 1)[0] }}/">
+      <strong>Open the latest stable release.</strong>
+    </a>
+  {% endif %}
+{% endblock %}

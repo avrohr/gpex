@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use gpex in your research, please consider citing the software."
+title: "gpex: Gaussian processes for experimental design in JAX"
+type: software
+authors:
+  - family-names: "von Rohr"
+    given-names: "Alexander"
+repository-code: "https://github.com/avrohr/gpex"
+license: MIT

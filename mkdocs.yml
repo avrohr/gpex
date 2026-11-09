@@ -1,0 +1,139 @@
+site_name: gpex
+site_url: https://avrohr.github.io/gpex/
+strict: true
+site_description: Gaussian processes for experimental design in JAX
+repo_url: https://github.com/avrohr/gpex
+repo_name: avrohr/gpex
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2026 Alexander von Rohr
+
+theme:
+  name: material
+  custom_dir: docs/templates
+  language: en
+  logo: assets/gpex_icon.svg
+  favicon: assets/gpex_icon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - content.code.copy
+    - content.code.annotate
+    - navigation.footer
+    - navigation.indexes
+    - navigation.tracking
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Concepts:
+      - Gaussian processes with linear functionals: concepts/linear-functionals.md
+      - Observations, designs, and queries: concepts/observations-designs-queries.md
+      - Linear operators: concepts/linear-operators.md
+      - JAX and observation capacity: concepts/jax-and-capacity.md
+  - Tutorials:
+      - Overview: tutorials/index.md
+      - First posterior: tutorials/first-posterior.ipynb
+      - Learning a function from derivatives: tutorials/mixed-measurements.ipynb
+      - Learning from averages: tutorials/nonlocal-measurements.ipynb
+      - Experimental design: tutorials/design-of-experiments.ipynb
+      - Sequential observations: tutorials/sequential-streaming.ipynb
+      - Fitting hyperparameters: tutorials/mle-map.ipynb
+      - Sampling from a GP posterior: tutorials/posterior-paths.ipynb
+      - Implementing a custom operator: tutorials/custom-operators.ipynb
+  - Performance: benchmarks.md
+  - API reference:
+      - Inference: api/inference.md
+      - Blocks: api/blocks.md
+      - Kernels and means: api/kernels.md
+      - Operators: api/operators.md
+      - Parameters and priors: api/parameters.md
+      - Fitting and objectives: api/fitting.md
+      - Numerical backends: api/backends.md
+  - Changelog: changelog.md
+
+plugins:
+  - mike:
+      alias_type: copy
+  - search
+  - mkdocs-jupyter:
+      execute: false
+      include_source: true
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            heading_level: 2
+            members_order: source
+            filters: ["!^_"]
+            show_if_no_docstring: true
+            merge_init_into_class: true
+            show_root_heading: true
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: [".", "docs"]
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/homepage.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - javascripts/notebook-details.js
+  - javascripts/homepage-demo.mjs
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+extra:
+  version:
+    provider: mike
+    default: stable
+    alias: true
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/avrohr/gpex
+
+validation:
+  nav:
+    omitted_files: warn
+  links:
+    not_found: warn
+    anchors: warn
+    unrecognized_links: warn
+
+hooks:
+  - scripts/docs_hooks.py

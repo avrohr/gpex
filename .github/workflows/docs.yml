@@ -1,0 +1,101 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build documentation
+    if: >-
+      github.event_name != 'release' ||
+      (!github.event.release.prerelease && startsWith(github.event.release.tag_name, 'v'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+          cache-suffix: dev
+          python-version: "3.12"
+      - run: uv sync --locked
+      - name: Execute tutorial and example notebooks
+        run: uv run --frozen python scripts/verify_tutorials.py --write
+      - run: uv run --frozen mkdocs build --strict
+      - run: uv run --frozen python scripts/check_docs_links.py
+      - run: uv run --frozen python scripts/check_tutorial_outputs.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: executed-tutorials
+          path: docs/tutorials/*.ipynb
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy documentation
+    needs: build
+    if: >-
+      github.event.repository.private == false &&
+      (github.event_name == 'release' ||
+       (github.event_name != 'pull_request' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docs-pages
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          name: executed-tutorials
+          path: docs/tutorials
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          enable-cache: true
+          cache-suffix: dev
+          python-version: "3.12"
+      - run: uv sync --locked
+      - uses: actions/configure-pages@v6.0.0
+      - name: Build and check versioned documentation
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          version=dev
+          if [ -n "$RELEASE_TAG" ]; then
+            version="${RELEASE_TAG#v}"
+          fi
+          uv run --frozen python scripts/deploy_docs.py "$version"
+          mkdir -p build/docs-site
+          git archive gh-pages | tar -x -C build/docs-site
+          uv run --frozen python scripts/check_docs_links.py \
+            --site-dir build/docs-site --source-version "$version"
+          uv run --frozen python scripts/check_tutorial_outputs.py \
+            --site-dir build/docs-site --source-version "$version"
+          git push origin gh-pages
+      - uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: build/docs-site/
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1

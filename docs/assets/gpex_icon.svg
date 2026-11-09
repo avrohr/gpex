@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 256 256"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">gpex icon</title>
+  <desc id="description">
+    A Gaussian-process curve and uncertainty ribbon enclosed by linear-functional brackets.
+  </desc>
+
+  <defs>
+    <linearGradient id="background" x1="28" y1="18" x2="228" y2="238" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#173f73"/>
+      <stop offset="0.55" stop-color="#102d57"/>
+      <stop offset="1" stop-color="#081d3d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(180 70) rotate(132) scale(165)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3ecad3" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#3ecad3" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="tile">
+      <rect x="8" y="8" width="240" height="240" rx="52"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#tile)">
+    <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#background)"/>
+    <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#glow)"/>
+
+    <!-- Posterior uncertainty around the latent function. -->
+    <path
+      d="M 51 156 C 75 105, 96 101, 117 131 C 139 163, 158 180, 180 148 C 194 128, 202 107, 210 91"
+      fill="none"
+      stroke="#72d8e4"
+      stroke-width="42"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      opacity="0.17"
+    />
+
+    <!-- A single latent GP sample/mean. -->
+    <path
+      d="M 51 156 C 75 105, 96 101, 117 131 C 139 163, 158 180, 180 148 C 194 128, 202 107, 210 91"
+      fill="none"
+      stroke="#f7fbff"
+      stroke-width="11"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Linear-functional brackets: L[f]. -->
+    <path
+      d="M 68 48 H 43 C 37 48, 34 52, 34 58 V 198 C 34 204, 37 208, 43 208 H 68"
+      fill="none"
+      stroke="#48cad4"
+      stroke-width="13"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M 188 48 H 213 C 219 48, 222 52, 222 58 V 198 C 222 204, 219 208, 213 208 H 188"
+      fill="none"
+      stroke="#48cad4"
+      stroke-width="13"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Heterogeneous observations on the shared process. -->
+    <circle cx="61" cy="139" r="8" fill="#f1a365" stroke="#102d57" stroke-width="4"/>
+    <circle cx="117" cy="131" r="8" fill="#48cad4" stroke="#102d57" stroke-width="4"/>
+    <circle cx="180" cy="148" r="8" fill="#e46a91" stroke="#102d57" stroke-width="4"/>
+  </g>
+
+  <rect
+    x="8"
+    y="8"
+    width="240"
+    height="240"
+    rx="52"
+    fill="none"
+    stroke="#7ddbe2"
+    stroke-opacity="0.28"
+    stroke-width="2"
+  />
+</svg>

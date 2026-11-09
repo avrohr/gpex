@@ -1,0 +1,4 @@
+*.ipynb linguist-language=Python
+*.svg text eol=lf -whitespace
+*.py text eol=lf
+*.md text eol=lf

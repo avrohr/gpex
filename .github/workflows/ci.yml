@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  JAX_ENABLE_X64: "1"
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+          cache-suffix: comparison
+          python-version: "3.12"
+      - run: uv sync --locked --all-groups
+      - run: uv run --frozen ruff check .
+      - run: uv run --frozen pyright
+      - name: Comparison sequence reference tests
+        run: >-
+          uv run --frozen python -m pytest tests/test_benchmarks.py
+          -k 'sequences_match_independent_dense_reference and (gpjax or gpytorch)' -q
+      - name: Benchmark smoke test
+        run: >-
+          uv run --frozen python benchmarks/run.py
+          --workloads dense mixed append rebuild mle map design design-prepared gpjax gpytorch
+          --sizes 16 --queries 3 --repeats 2 --steps 3
+          --output /tmp/gpex-performance-smoke.json
+      - name: Sequence workload smoke tests
+        run: |
+          uv run --frozen python benchmarks/datasets.py \
+            --workloads datasets --sizes 6 --min-size 2 --sequence-length 4 \
+            --output /tmp/gpex-datasets-smoke.json
+          uv run --frozen python benchmarks/sequential.py \
+            --workloads sequential --sizes 6 --start-size 2 \
+            --output /tmp/gpex-sequential-smoke.json
+
+  tests:
+    name: Python ${{ matrix.python-version }} · JAX x64=${{ matrix.x64 }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.12"
+            x64: "1"
+          - python-version: "3.13"
+            x64: "0"
+          - python-version: "3.13"
+            x64: "1"
+    env:
+      JAX_ENABLE_X64: ${{ matrix.x64 }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+          cache-suffix: dev
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --locked
+      - run: uv run --frozen pytest --cov=gpex --cov-report=term-missing --durations=30
