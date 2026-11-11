@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from contextlib import nullcontext
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -115,7 +116,8 @@ def provenance():
         environment={
             key: value
             for key, value in sorted(os.environ.items())
-            if key.startswith(
+            if key == "GPEX_BENCHMARK_RUNTIME_SHA256"
+            or key.startswith(
                 ("JAX_", "XLA_", "OMP_", "MKL_", "OPENBLAS_", "CUDA_VISIBLE", "SLURM_")
             )
         },
@@ -145,7 +147,7 @@ def hardware():
         if hasattr(os, "sched_getaffinity")
         else os.cpu_count(),
     )
-    if os.environ.get("JAX_PLATFORMS") in ("cuda", "gpu"):
+    if {"cuda", "gpu"} & set(os.environ.get("JAX_PLATFORMS", "").split(",")):
         # Let CUDA resolve numeric indices, UUIDs, MIG and enumeration order.
         # The probe creates no contexts and never initializes CUDA in this process.
         info["gpu"] = json.loads(
@@ -400,14 +402,43 @@ def execute(
             )
             completed.check_returncode()
         else:
-            completed = subprocess.run(
-                command,
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                check=True,
+            scratch = os.environ.get("GPEX_BENCHMARK_SCRATCH")
+            case_directory = (
+                tempfile.TemporaryDirectory(prefix="case-", dir=scratch)
+                if scratch and case.get("backend") == "gpu"
+                else nullcontext()
             )
+            with case_directory as temporary:
+                if temporary is None:
+                    completed = subprocess.run(
+                        command,
+                        cwd=ROOT,
+                        capture_output=True,
+                        text=True,
+                        timeout=timeout,
+                        check=True,
+                    )
+                else:
+                    cache = Path(temporary) / "cache"
+                    cache.mkdir()
+                    environment = os.environ | {
+                        "TMPDIR": temporary,
+                        "CUDA_CACHE_PATH": str(cache),
+                    }
+                    with (
+                        (attempt / "stdout.txt").open("w") as stdout,
+                        (attempt / "stderr.txt").open("w") as stderr,
+                    ):
+                        completed = subprocess.run(
+                            command,
+                            cwd=ROOT,
+                            env=environment,
+                            stdout=stdout,
+                            stderr=stderr,
+                            text=True,
+                            timeout=timeout,
+                            check=True,
+                        )
         row: dict[str, Any] = json.loads(output.read_text())
         failed = (
             isinstance(row, dict)
@@ -417,8 +448,9 @@ def execute(
         )
         if not valid(row, case, fingerprint) and not failed:
             raise ValueError("worker returned an invalid result")
-        (attempt / "stdout.txt").write_text(completed.stdout)
-        (attempt / "stderr.txt").write_text(completed.stderr)
+        if completed.stdout is not None:
+            (attempt / "stdout.txt").write_text(completed.stdout)
+            (attempt / "stderr.txt").write_text(completed.stderr)
     except (subprocess.SubprocessError, OSError, ValueError) as error:
         stderr = getattr(error, "stderr", "") or ""
         if isinstance(stderr, bytes):
@@ -459,7 +491,12 @@ def execute(
                 timing_invalid=True,
                 error="Timing rejected: measurement phase signals missing",
             )
-    row["attempt"] = str(attempt)
+    published = os.environ.get("GPEX_BENCHMARK_OUTPUT_ROOT")
+    row["attempt"] = str(
+        Path(published) / component.parent.name / attempt.name
+        if published and case.get("backend") == "gpu"
+        else attempt
+    )
     write(output, row)
     write(component, row)
     return row
@@ -681,6 +718,7 @@ def main(*, default_workloads=None, default_sizes=None):
                         cases.append(case | dict(start_size=args.start_size))
                     else:
                         cases.append(case)
+    # GPU work remains the default; CPU is also needed for error callbacks.
     if args.manifest:
         manifest = json.loads(args.manifest.read_text())
         cases = [
@@ -692,9 +730,9 @@ def main(*, default_workloads=None, default_sizes=None):
             raise ValueError("Manifest execution requires one backend and dtype")
         dtype, backend = cases[0]["dtype"], cases[0]["backend"]
         os.environ["JAX_ENABLE_X64"] = "1" if dtype == "float64" else "0"
-        os.environ["JAX_PLATFORMS"] = "cuda" if backend == "gpu" else "cpu"
+        os.environ["JAX_PLATFORMS"] = "cuda,cpu" if backend == "gpu" else "cpu"
     else:
-        os.environ["JAX_PLATFORMS"] = "cuda" if args.backend == "gpu" else "cpu"
+        os.environ["JAX_PLATFORMS"] = "cuda,cpu" if args.backend == "gpu" else "cpu"
     if args.trace and any(
         c["workload"].startswith("gp") or sequence_module(c) for c in cases
     ):

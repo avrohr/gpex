@@ -1,0 +1,364 @@
+{
+  "cpu_label": "Apple M3 Max CPU",
+  "settings": {
+    "queries": 1,
+    "steps": 100,
+    "covariance_tile": null,
+    "rhs_chunk": 16,
+    "max_steps": 32768,
+    "rtol": 2e-05,
+    "atol": 1e-06
+  },
+  "tile": {
+    "cpu": 1024,
+    "gpu": 8192
+  },
+  "sizes": {
+    "cpu": {
+      "dense": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "gpjax": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "gpytorch": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "append": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "rebuild": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "mle": [
+        128,
+        256,
+        512,
+        1024,
+        2048
+      ],
+      "map": [
+        128,
+        256,
+        512,
+        1024,
+        2048
+      ],
+      "design": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192
+      ],
+      "mixed": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192
+      ],
+      "design-prepared": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192
+      ],
+      "predict": [
+        4096
+      ],
+      "predict-marginals": [
+        4096
+      ],
+      "datasets": [
+        512
+      ],
+      "datasets-compact": [
+        512
+      ],
+      "datasets-gpjax": [
+        512
+      ],
+      "datasets-gpytorch": [
+        512
+      ],
+      "sequential": [
+        1024
+      ],
+      "sequential-rebuild": [
+        1024
+      ],
+      "sequential-gpjax": [
+        1024
+      ],
+      "sequential-gpytorch": [
+        1024
+      ]
+    },
+    "gpu": {
+      "mixed": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768
+      ],
+      "append": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768
+      ],
+      "rebuild": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768
+      ],
+      "mle": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "map": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "dense": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768
+      ],
+      "gpjax": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768
+      ],
+      "gpytorch": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768
+      ],
+      "design": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768
+      ],
+      "design-prepared": [
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768
+      ],
+      "predict": [
+        4096
+      ],
+      "predict-marginals": [
+        4096
+      ],
+      "datasets": [
+        512
+      ],
+      "datasets-compact": [
+        512
+      ],
+      "datasets-gpjax": [
+        512
+      ],
+      "datasets-gpytorch": [
+        512
+      ],
+      "sequential": [
+        1024
+      ],
+      "sequential-rebuild": [
+        1024
+      ],
+      "sequential-gpjax": [
+        1024
+      ],
+      "sequential-gpytorch": [
+        1024
+      ]
+    }
+  },
+  "helma": {
+    "root": "~/gpex-profiling",
+    "jobs": {
+      "fitting": {
+        "minutes": 60,
+        "workloads": ["mle", "map"]
+      },
+      "conditioning": {
+        "minutes": 45,
+        "workloads": ["dense", "gpjax", "gpytorch", "mixed", "append", "rebuild"]
+      },
+      "design-prediction": {
+        "minutes": 40,
+        "workloads": ["design", "design-prepared", "predict", "predict-marginals"]
+      },
+      "sequences": {
+        "minutes": 30,
+        "workloads": [
+          "datasets", "datasets-compact", "datasets-gpjax", "datasets-gpytorch",
+          "sequential", "sequential-rebuild", "sequential-gpjax", "sequential-gpytorch"
+        ]
+      }
+    }
+  },
+  "size_overrides": {
+    "cpu": {
+      "float64": {
+        "dense": [
+          128,
+          256,
+          512,
+          1024,
+          2048,
+          4096,
+          8192
+        ],
+        "gpjax": [
+          128,
+          256,
+          512,
+          1024,
+          2048,
+          4096,
+          8192
+        ],
+        "gpytorch": [
+          128,
+          256,
+          512,
+          1024,
+          2048,
+          4096,
+          8192
+        ]
+      }
+    }
+  },
+  "query_sweeps": {
+    "predict": [
+      1,
+      16,
+      64,
+      256,
+      1024
+    ],
+    "predict-marginals": [
+      1,
+      16,
+      64,
+      256,
+      1024
+    ]
+  },
+  "sequences": {
+    "datasets": {
+      "min_size": 16,
+      "sequence_length": 100,
+      "pattern": "distinct"
+    },
+    "sequential": {
+      "start_size": 512
+    }
+  }
+}

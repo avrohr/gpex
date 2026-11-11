@@ -1,0 +1,7 @@
+raw/
+traces/
+logs/
+.cache/
+!results/
+!results/*.json
+.local/

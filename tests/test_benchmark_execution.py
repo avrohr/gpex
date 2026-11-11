@@ -446,3 +446,43 @@ def test_manifest_trace_validation_uses_selected_cases(tmp_path, monkeypatch, ca
     )
     runner.main()
     assert json.loads(capsys.readouterr().out)["cases"] == cases[:1]
+
+
+@pytest.mark.parametrize("manifest", [False, True])
+def test_gpu_plan_enables_cpu_callbacks(tmp_path, monkeypatch, capsys, manifest):
+    args = [
+        "run.py",
+        "--plan",
+        "--backend",
+        "gpu",
+        "--output",
+        str(tmp_path / "out.json"),
+    ]
+    if manifest:
+        path = tmp_path / "manifest.json"
+        path.write_text(
+            json.dumps(
+                {"cases": [{"backend": "gpu", "dtype": "float64", "workload": "mle"}]}
+            )
+        )
+        args += ["--manifest", str(path)]
+    monkeypatch.setattr(sys, "argv", args)
+    monkeypatch.setenv("JAX_PLATFORMS", "cpu")
+    runner.main()
+    assert runner.os.environ["JAX_PLATFORMS"] == "cuda,cpu"
+    capsys.readouterr()
+
+
+def test_gpu_provenance_with_cpu_callbacks(monkeypatch):
+    monkeypatch.setenv("JAX_PLATFORMS", "cuda,cpu")
+    monkeypatch.setattr(runner.platform, "system", lambda: "Darwin")
+
+    def output(command, **kwargs):
+        return (
+            json.dumps({"devices": [{"name": "H100"}]})
+            if command[0] == sys.executable
+            else "CPU"
+        )
+
+    monkeypatch.setattr(runner.subprocess, "check_output", output)
+    assert runner.hardware()["gpu"]["devices"][0]["name"] == "H100"
