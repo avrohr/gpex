@@ -1,0 +1,125 @@
+.gpex-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin: 1.6rem 0 2.6rem;
+}
+
+.gpex-feature-icon {
+  --gpex-icon-accent: #078491;
+  display: block;
+  width: 3.6rem;
+  height: 2.8rem;
+  color: #284d73;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+[data-md-color-scheme="slate"] .gpex-feature-icon {
+  --gpex-icon-accent: #70cad6;
+  color: #b6c9de;
+}
+
+.gpex-icon-accent { color: var(--gpex-icon-accent); }
+.gpex-icon-solid { fill: currentColor; stroke: none; }
+.gpex-icon-wash { fill: currentColor; fill-opacity: 0.12; stroke: none; }
+.gpex-icon-point { fill: var(--md-default-bg-color); }
+.gpex-icon-guide { opacity: 0.3; }
+
+.md-typeset .gpex-features h3 { margin: 0.6rem 0; font-weight: 650; }
+.md-typeset .gpex-features p { font-size: 0.76rem; }
+.gpex-features a { font-weight: 500; }
+
+.gpex-demo {
+  --demo-value: #b05412;
+  --demo-slope: #087e8b;
+  --demo-average: #7754bc;
+  --demo-posterior: #245caa;
+  margin: 1.3rem 0 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.6rem;
+  background: var(--md-default-bg-color);
+}
+
+[data-md-color-scheme="slate"] .gpex-demo {
+  --demo-value: #efad73;
+  --demo-slope: #6bc9d0;
+  --demo-average: #bc9ef3;
+  --demo-posterior: #8db9f8;
+}
+
+.gpex-demo [hidden] { display: none !important; }
+.gpex-demo-controls, .gpex-demo-editor, .gpex-demo-types, .gpex-demo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.8rem;
+}
+.gpex-demo-controls { justify-content: space-between; align-items: end; }
+.gpex-demo label, .gpex-demo legend, .gpex-demo button { font-size: 0.7rem; }
+.gpex-demo label { display: flex; align-items: center; gap: 0.4rem; }
+.gpex-demo fieldset { border: 0; padding: 0; margin: 0; }
+.gpex-demo legend { margin-bottom: 0.4rem; font-weight: 600; }
+.gpex-demo-types label { cursor: pointer; }
+.gpex-demo-types input { width: 0.8rem; height: 0.8rem; accent-color: currentColor; }
+.gpex-value { color: var(--demo-value); }
+.gpex-slope { color: var(--demo-slope); }
+.gpex-average { color: var(--demo-average); }
+.gpex-demo select, .gpex-demo button {
+  min-height: 1.9rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.25rem;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  font: inherit;
+}
+.gpex-demo select { max-width: 100%; }
+.gpex-demo button { cursor: pointer; background: var(--md-code-bg-color); }
+.gpex-demo button:hover { border-color: var(--md-accent-fg-color); }
+.gpex-demo button:disabled { opacity: 0.5; cursor: default; }
+.gpex-demo :focus-visible { outline: 2px solid var(--md-accent-fg-color); outline-offset: 3px; }
+.gpex-demo-legend { margin-top: 1rem; font-size: 0.62rem; gap: 0.4rem 0.9rem; }
+.gpex-demo-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.gpex-demo-legend i { display: inline-block; width: 1rem; }
+.gpex-mean-key { border-top: 2px solid var(--demo-posterior); }
+.gpex-band-key { height: 0.5rem; background: var(--demo-posterior); opacity: 0.18; }
+.gpex-truth-key { border-top: 1px dashed var(--md-default-fg-color--light); }
+.gpex-demo-views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.7rem; }
+.md-typeset .gpex-demo-views h3 { margin: 0.9rem 0 0.2rem; font-size: 0.76rem; font-weight: 600; }
+.gpex-demo-plot, .gpex-demo-locations { display: block; width: 100%; overflow: visible; }
+.gpex-demo-plot { height: 230px; }
+.gpex-demo-locations { height: 132px; }
+.gpex-demo svg text { fill: var(--md-default-fg-color--light); font-family: inherit; font-size: 12px; }
+.gpex-demo svg .gpex-axis { stroke: var(--md-default-fg-color--lightest); stroke-width: 1; }
+.gpex-demo-plot .gpex-truth { fill: none; stroke: var(--md-default-fg-color--light); stroke-dasharray: 4 5; stroke-width: 1.3; }
+.gpex-demo-plot .gpex-mean { fill: none; stroke: var(--demo-posterior); stroke-width: 2.3; }
+.gpex-demo-plot .gpex-band { fill: var(--demo-posterior); fill-opacity: 0.15; }
+.gpex-demo-plot .gpex-point { fill: var(--md-default-bg-color); stroke: currentColor; stroke-width: 2; }
+.gpex-demo svg .gpex-marker { cursor: ew-resize; touch-action: none; }
+.gpex-demo svg .gpex-marker-shape { fill: currentColor; stroke: var(--md-default-bg-color); stroke-width: 1.5; }
+.gpex-demo svg .gpex-marker-selected { fill: none; stroke: currentColor; stroke-width: 1.5; }
+.gpex-demo svg .gpex-window { stroke: currentColor; stroke-width: 2; opacity: 0.6; }
+.gpex-demo svg .gpex-hit-area { fill: transparent; }
+.gpex-demo-plot .gpex-add-area { cursor: crosshair; }
+.md-typeset .gpex-demo-hint { font-size: 0.66rem; margin: 0 0 0.8rem; }
+.gpex-demo-editor { margin-top: 0.65rem; }
+.gpex-demo-selection { padding-top: 0.65rem; border-top: 1px solid var(--md-default-fg-color--lightest); }
+.gpex-demo-position { flex: 1; min-width: 9rem; flex-wrap: wrap; }
+.gpex-demo-position input { width: 100%; accent-color: var(--demo-posterior); }
+.gpex-demo-position output { margin-left: auto; font-variant-numeric: tabular-nums; }
+.md-typeset .gpex-demo-status { margin: 0.7rem 0 0; font-size: 0.65rem; color: var(--md-default-fg-color--light); }
+
+@media screen and (max-width: 700px) {
+  .gpex-features { grid-template-columns: 1fr; gap: 1rem; }
+  .gpex-feature-icon { float: left; margin: 0.2rem 1rem 0.2rem 0; }
+  .md-typeset .gpex-features h3 { margin-top: 0; }
+  .gpex-demo { padding: 0.65rem; }
+  .gpex-demo-views { grid-template-columns: 1fr; gap: 0; }
+  .gpex-demo-controls { align-items: start; }
+  .gpex-demo-position { flex-basis: 100%; order: 1; }
+}
