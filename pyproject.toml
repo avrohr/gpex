@@ -1,6 +1,6 @@
 [project]
 name = "gpex"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Gaussian processes for experimental design in JAX"
 readme = "README.md"
 license = "MIT"
