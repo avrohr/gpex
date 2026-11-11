@@ -7,11 +7,15 @@ the cost of compilation over a complete workflow.
 
 There are two useful timings:
 
-- **Cold start:** tracing, compilation and the first execution.
+- **Cold start:** tracing, compilation and the first execution of a workload
+  in an initialized runtime.
 - **Warm runtime:** execution after compilation. New data can use the same
   compiled function when array shapes, dtypes and static configuration stay the same.
 
-Neither includes Python startup or input construction. CPU and GPU results appear
+Before timing, a tiny unrelated problem initializes the numerical libraries.
+That initialization, Python startup and input construction are excluded. Target
+compilation is fully timed, with persistent compilation caching disabled.
+CPU and GPU results appear
 side by side. Colors identify methods, solid lines show float32 and dashed lines
 show float64. Light bands show the range across three independent processes.
 Quoted examples use the recommended float64 precision. Curves stop at sizes
@@ -29,8 +33,8 @@ together.
 result = gp.condition(dataset).predict(query)
 ```
 
-At N = 32,768 on the H100, warm runtime is **345 ms** for gpex, **325 ms** for
-GPJax and **827 ms** for GPyTorch. Peak device allocation is about 16, 16 and 48 GiB.
+At N = 32,768 on the H100, warm runtime is **345 ms** for gpex, **320 ms** for
+GPJax and **817 ms** for GPyTorch. Peak device allocation is about 16, 16 and 48 GiB.
 
 ## Adding an observation
 
@@ -104,8 +108,8 @@ dataset. GPJax reconditions on growing arrays. GPyTorch uses its incremental
 fantasy-update API. Totals include initial conditioning, every prediction and
 compilation.
 
-In float64, the complete gpex append workflow takes **1.18 s on CPU** and
-**0.85 s on the H100**. Reconditioning takes **2.59 s** and **0.82 s** respectively.
+In float64, the complete gpex append workflow takes **1.05 s on CPU** and
+**0.83 s on the H100**. Reconditioning takes **2.53 s** and **0.79 s** respectively.
 At these sizes, GPU append and reconditioning have similar total cost.
 
 ## MLE and MAP fitting
@@ -124,7 +128,7 @@ fitted = fit((gp, dataset), objective, optax.adam(0.02), step_count=100)
 `negative_log_posterior(*model)` for MAP. Both timing rows show complete
 100-step fit time divided by 100. Cold time includes compilation, amortized
 across those 100 steps. Warm time excludes it. At N = 16,384 in float64 on
-the H100, warm MLE takes **457 ms** per average step and MAP **451 ms**.
+the H100, warm MLE and MAP each take **447 ms** per average step.
 
 ## Differentiable design
 
@@ -143,7 +147,7 @@ jax.value_and_grad(design_prepared)(points, prepared, variance)
 ```
 
 At N = 32,768 on the H100, warm objective-and-gradient evaluation takes
-**53.1 ms** for ordinary design and **20.4 ms** for prepared design.
+**52.6 ms** for ordinary design and **20.2 ms** for prepared design.
 
 ## Mixed measurements
 
@@ -159,7 +163,7 @@ result = gp.condition(dataset).predict(query)
 ```
 
 Each call conditions on the complete dataset and predicts one value. Warm
-runtime is **379 ms** for N = 32,768 on the H100 and **1.72 s** for N = 8,192
+runtime is **366 ms** for N = 32,768 on the H100 and **1.65 s** for N = 8,192
 on the CPU.
 
 ## Prediction batches
@@ -176,9 +180,9 @@ result = posterior.predict(query)            # mean and full covariance
 result = posterior.predict_marginals(query)  # mean and marginal variances
 ```
 
-On the H100, one query takes **0.44 ms** with either method. At 1,024 queries,
-warm runtime is **2.11 ms** for full covariance and **1.93 ms** for marginal
-variances. Memory includes the posterior.
+On the H100, one query takes **0.45 ms** for full covariance and **0.44 ms** for
+marginal variances. At 1,024 queries, warm runtime is **2.15 ms** and **1.93 ms**
+respectively. Peak memory includes the posterior.
 
 <span id="measurement-protocol"></span>
 
@@ -189,13 +193,19 @@ variances. Memory includes the posterior.
 | CPU | Apple M3 Max, 14 cores, 36 GiB unified memory |
 | GPU | NVIDIA H100, approximately 93 GiB device memory, 32 allocated host cores |
 | Python | 3.12.11 on CPU, 3.12.13 on GPU |
-| Software | JAX/jaxlib 0.11.2, GPJax 1.0.0, PyTorch 2.14.0, GPyTorch 1.15.2 |
+| Software | JAX/jaxlib 0.11.2, cholops 0.2.1, GPJax 1.0.0, PyTorch 2.14.0, GPyTorch 1.15.2 |
 | Model | Zero-mean RBF GP, variance 1, lengthscale 0.8, noise variance 0.05 |
 | Arithmetic | Separate float32 and float64 runs, highest matrix-multiplication precision |
 
 Regression uses evenly spaced inputs on [-4, 4] and values from
 `sin(1.7*x) + 0.1*cos(3.1*x)`. Kernels, input dimensions, observation geometry,
 noise and prediction batch size can all change the cost.
+
+Each process first runs Cholesky factorization, triangular solves and matrix
+multiplication on an unrelated seven-row problem. This loads numerical libraries
+without compiling the measured workload. Initialization is recorded separately
+and excluded from all timing curves. Cold start therefore represents an existing
+application encountering a new workload or array shape, not launching Python.
 
 The single-operation plots show cold and warm timing separately where indicated.
 Append and rebuild also show both timings. Design and prediction plots show
@@ -210,7 +220,7 @@ timings. GPyTorch runs eagerly, so its cold time is the first execution without
 a separate compilation phase.
 
 CPU runs use library-default threading. The
-[benchmark harness](https://github.com/avrohr/gpex/blob/6a14d6375bdb253de5e470dcd08aed2688ef3333/benchmarks/workloads.py)
+[benchmark harness](https://github.com/avrohr/gpex/blob/5ffd0bff6d9ec8ba75f181ecccb7ecdb67568a2a/benchmarks/workloads.py)
 synchronizes JAX results and runs numerical checks outside timing. Single-operation
 conditioning uses exact capacity. Append reserves one additional observation,
 and ordinary design reserves the four proposed observations.
@@ -218,15 +228,20 @@ and ordinary design reserves the four proposed observations.
 Memory is the largest recorded peak across the three processes. CPU memory is
 peak process RSS, including setup and compilation. GPU memory is peak live
 device allocation, excluding host memory and unused pool capacity. Both use
-the same scale across precisions within a figure.
+the same scale across precisions within a figure. The initialization pass can
+contribute to the recorded peak.
 
 Training jitter is 1e-6 in gpex and GPJax. GPJax also uses predictive jitter
 of 1e-6.
 
 GPU runs use CUDA 13 with NVIDIA driver 595.91.07 or 615.71.09, depending on the
 allocated node. The host CPU is an AMD EPYC 9554. Driver and node differences
-can affect compilation and runtime, so small differences between methods should
-not be interpreted as controlled comparisons on identical systems. Every worker
+can affect compilation and runtime. Within each precision, related workloads
+and their comparison libraries run serially on the same allocated GPU.
+Different groups can use different nodes, so small differences across groups
+should not be interpreted as controlled comparisons on identical systems.
+Each job stages the compiler, runtime and source on node-local storage before
+measurement. Staging is excluded from the curves. Every worker
 disables `xla_gpu_experimental_enable_fusion_autotuner`
 to avoid expensive fusion candidate compilation.
 GPJax is pinned to commit `964bad77483e3c694f116d666d21617a1260208b`.
@@ -253,9 +268,8 @@ Repeat with `--dtype float32` and a separate output path for single precision.
 The [benchmark runner documentation](https://github.com/avrohr/gpex/blob/main/benchmarks/README.md)
 describes workloads, settings, numerical checks and report fields.
 
-These figures measure source `6a14d6375bdb253de5e470dcd08aed2688ef3333`.
+These figures measure library source `5ffd0bff6d9ec8ba75f181ecccb7ecdb67568a2a`.
 The `profiling` branch contains the campaign plan, plot generator and compact
-measurements in `profiling/results/6a14d63.json`.
-One float64 MLE process at N = 16,384 was rerun after a non-finite result. The
-retry passed on the same node with unchanged source and numerical settings and
-is included with the two original successful processes.
+measurements in `profiling/results/4e5cada.json`. CPU measurements use profiling
+revision `683bade`, and GPU measurements use `4e5cada`. Their library source,
+locked dependencies, scientific workloads and timing protocol match.

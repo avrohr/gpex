@@ -108,13 +108,14 @@ updates with reserved capacity so fixed-size observation batches can reuse
 compiled code.
 
 Start with 512 observations, then add 512 more and predict after every update.
-gpex completes this workflow **36× faster than GPJax and 13× faster than
-GPyTorch on CPU**, and **115× and 7× faster on the H100**.
+gpex completes this workflow **38× faster than GPJax and 15× faster than
+GPyTorch on CPU**, and **108× and 6.6× faster on the H100**.
 
-![Complete sequential workflow: gpex takes 1.18 seconds on CPU and 0.85 seconds on GPU, compared with 42.45 and 97.85 seconds for GPJax, and 15.53 and 6.04 seconds for GPyTorch.](assets/benchmarks/10_sequential_headline.svg)
+![Complete sequential workflow: gpex takes 1.05 seconds on CPU and 0.83 seconds on GPU, compared with 40.02 and 89.52 seconds for GPJax, and 15.32 and 5.49 seconds for GPyTorch.](assets/benchmarks/10_sequential_headline.svg)
 
 Float64, fixed hyperparameters, one prediction point per update. Times include
-initial conditioning and compilation. Bars show medians of three processes,
+initial conditioning and compilation, with numerical libraries initialized before
+timing. Bars show medians of three processes,
 with min–max ranges. [Full benchmark and setup](benchmarks.md#sequential-observations).
 
 ## View the GP posterior through linear operators
